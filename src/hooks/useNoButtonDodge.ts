@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 type Point = { x: number; y: number };
 
@@ -79,15 +79,19 @@ export function useNoButtonDodge() {
     setNoPos(next);
   }, []);
 
-  useEffect(() => {
-    // Place the No button somewhere reasonable on first paint.
-    // Small delay ensures refs are laid out (fonts/styles applied).
-    const t = window.setTimeout(() => {
-      setNoPos({ x: 0, y: 0 });
-      moveNoButton();
-    }, 0);
-    return () => window.clearTimeout(t);
-  }, [moveNoButton]);
+  const captureNoButtonPosition = useCallback(() => {
+    const arena = arenaRef.current;
+    const noBtn = noBtnRef.current;
+    if (!arena || !noBtn) return;
+
+    const arenaRect = arena.getBoundingClientRect();
+    const noRect = noBtn.getBoundingClientRect();
+
+    setNoPos({
+      x: noRect.left - arenaRect.left,
+      y: noRect.top - arenaRect.top,
+    });
+  }, []);
 
   return {
     noPos,
@@ -95,5 +99,6 @@ export function useNoButtonDodge() {
     noBtnRef,
     yesBtnRef,
     moveNoButton,
+    captureNoButtonPosition,
   };
 }

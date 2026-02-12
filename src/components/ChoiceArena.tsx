@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 
 import { useNoButtonDodge } from "../hooks/useNoButtonDodge";
@@ -8,8 +9,29 @@ export type ChoiceArenaProps = {
 };
 
 export function ChoiceArena({ onYes, onNo }: ChoiceArenaProps) {
-  const { arenaRef, yesBtnRef, noBtnRef, noPos, moveNoButton } =
-    useNoButtonDodge();
+  const {
+    arenaRef,
+    yesBtnRef,
+    noBtnRef,
+    noPos,
+    moveNoButton,
+    captureNoButtonPosition,
+  } = useNoButtonDodge();
+
+  const [isDodging, setIsDodging] = useState(false);
+
+  const triggerDodge = () => {
+    if (!isDodging) {
+      setIsDodging(true);
+      // Anchor the absolute-positioned button where it currently is,
+      // then immediately move it away.
+      captureNoButtonPosition();
+      window.setTimeout(() => moveNoButton(), 0);
+      return;
+    }
+
+    moveNoButton();
+  };
 
   return (
     <Box
@@ -22,53 +44,74 @@ export function ChoiceArena({ onYes, onNo }: ChoiceArenaProps) {
         minHeight: { xs: 160, sm: 120 },
       }}
     >
-      <Button
-        ref={yesBtnRef}
-        size="large"
-        variant="contained"
-        onClick={onYes}
+      <Box
         sx={{
-          position: "relative",
-          zIndex: 1,
-          px: 4,
-          py: 1.2,
-          fontWeight: 800,
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 1.5,
         }}
       >
-        Yes
-      </Button>
+        <Button
+          ref={yesBtnRef}
+          size="large"
+          variant="contained"
+          onClick={onYes}
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            px: 4,
+            py: 1.2,
+            fontWeight: 800,
+          }}
+        >
+          Yes
+        </Button>
 
-      <Button
-        ref={noBtnRef}
-        size="large"
-        variant="outlined"
-        onClick={onNo}
-        onPointerEnter={() => moveNoButton()}
-        onPointerDown={(e) => {
-          // On touch devices, move away before a "click" can happen.
-          e.preventDefault();
-          moveNoButton();
-        }}
-        onFocus={() => moveNoButton()}
-        sx={{
-          position: "absolute",
-          left: noPos.x,
-          top: noPos.y,
-          px: 4,
-          py: 1.2,
-          fontWeight: 800,
-          transition: "left 140ms ease, top 140ms ease",
-          userSelect: "none",
-          touchAction: "none",
-        }}
-      >
-        No
-      </Button>
+        <Button
+          ref={noBtnRef}
+          size="large"
+          variant="outlined"
+          onClick={() => {
+            if (!isDodging) {
+              // First time: start dodging instead of answering.
+              triggerDodge();
+              return;
+            }
+            onNo();
+          }}
+          onPointerEnter={() => triggerDodge()}
+          onPointerDown={(e) => {
+            // On touch devices, move away before a "click" can happen.
+            e.preventDefault();
+            triggerDodge();
+          }}
+          onFocus={() => triggerDodge()}
+          sx={{
+            ...(isDodging
+              ? {
+                  position: "absolute",
+                  left: noPos.x,
+                  top: noPos.y,
+                }
+              : { position: "relative" }),
+            px: 4,
+            py: 1.2,
+            fontWeight: 800,
+            transition: "left 140ms ease, top 140ms ease",
+            userSelect: "none",
+            touchAction: "none",
+          }}
+        >
+          No
+        </Button>
+      </Box>
 
       <Typography
         variant="caption"
         color="text.secondary"
-        sx={{ display: "block", mt: 2 }}
+        sx={{ display: "block", mt: 5 }}
       >
         P.S: Just click yes, you know you want to!
       </Typography>
