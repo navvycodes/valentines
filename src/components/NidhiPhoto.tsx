@@ -22,8 +22,8 @@ export function NidhiPhoto({ src = "/nidhi.jpg" }: NidhiPhotoProps) {
       loading="eager"
       onError={() => setIsVisible(false)}
       sx={{
-        width: { xs: 120, sm: 140 },
-        height: { xs: 120, sm: 140 },
+        width: { xs: 150, sm: 170 },
+        height: { xs: 150, sm: 170 },
         objectFit: "cover",
         borderRadius: "999px",
         display: "block",
